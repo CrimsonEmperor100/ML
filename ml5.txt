@@ -1,0 +1,38 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import OrdinalEncoder
+
+car = pd.read_csv('car_evaluation.csv')
+car.head(5)
+
+car.columns = ['buying','maint','doors','persons','lug_boot','safety','class']
+
+car.head(5)
+
+car.info()
+
+car.shape
+
+car.isnull().sum()
+
+oe = OrdinalEncoder()
+car[['buying','maint','doors','persons','lug_boot','safety','class']] =oe.fit_transform(car[['buying','maint','doors','persons','lug_boot','safety','class']])
+car.head()
+
+car['persons'].value_counts()
+
+x = car.drop('class',axis=1)
+y = car['class']
+
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.25,random_state=1)
+
+rf = RandomForestClassifier()
+rf.fit(x_train,y_train)
+
+accuracy = rf.score(x_test,y_test)*100
+print("Accuracy score : ",accuracy)
+
+y_pred = rf.predict(x_test)
+print(classification_report(y_test,y_pred))
