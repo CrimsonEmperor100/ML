@@ -1,0 +1,117 @@
+'''
+Pseudocode
+# Step 1: Import and clean column names
+import pandas as pd
+df = pd.read_csv("RealEstate_Prices.csv")
+df.columns = [col.strip().replace(" ", "_").lower() for col in df.columns]
+
+# Step 2: Handle missing values
+missing_values = df.isnull().sum()
+if missing_values > 0:
+    # Imputation or removal strategy
+
+# Step 3: Perform data merging (if necessary)
+if additional_data:
+    df_merged = pd.merge(df, additional_data, on="property_id")
+
+# Step 4: Filter and subset the data
+filtered_df = df.loc[(df["sale_date"] >= "2020-01-01") & (df["property_type"] == "residential")]
+
+# Step 5: Handle categorical variables
+categorical_cols = ["property_type", "location"]
+for col in categorical_cols:
+    df[col] = pd.get_dummies(df[col], drop_first=True)
+
+# Step 6: Aggregate the data
+aggregated_df = df.groupby("neighborhood").agg({"sale_price": "mean"})
+
+# Step 7: Identify and handle outliers
+outliers = df[(df["sale_price"] > 3 * df["sale_price"].std()) | (df["sale_price"] < -3 * df["sale_price"].std())]
+# if outliers:
+    # Handle outliers
+'''
+
+
+# 1. Import the "RealEstate_Prices.csv" dataset. Clean column names by removing spaces, special characters, or renaming them for clarity.
+import pandas as pd
+import numpy as np
+
+df = pd.read_csv('../../Datasets/RealEstate_Prices.csv')
+additional = pd.read_csv('../../Datasets/additional_info.csv')
+
+df.columns,additional.columns
+
+df.columns = [col.strip().replace(" ", "_").lower() for col in df.columns]
+additional.columns = [col.strip().replace(" ", "_").lower() for col in additional.columns]
+
+df.columns,additional.columns
+
+
+# 2. Perform data merging if additional datasets with relevant information are available (e.g., neighborhood demographics or nearby amenities)
+merged_df = pd.merge(df,additional,on='property_id',how='inner')
+
+
+# 3. Handle missing values in the dataset, deciding on an appropriate strategy (e.g.,imputation or removal).
+# checking for missing values
+merged_df.isna().sum()
+
+# Imputation
+categorical_cols = ['bedrooms']
+numerical_cols = ['area_sq_ft','sale_price','demographics_population']
+
+for col in categorical_cols:
+    merged_df[col] = merged_df[col].fillna(merged_df[col].mode()[0])
+
+for col in numerical_cols:
+    merged_df[col] = merged_df[col].fillna(merged_df[col].mean())
+merged_df.isna().sum()
+
+
+# Removal
+merged_df = merged_df.dropna()
+
+merged_df.isna().sum()
+
+
+# 4. Filter and subset the data based on specific criteria, such as a particular time period, property type, or location.
+filtered_df = merged_df[(merged_df["sale_date"] >= "2020-01-01") & (merged_df["property_type"] == "Apartment")]
+filtered_df
+
+
+# 5. Handle categorical variables by encoding them appropriately (e.g., one-hot encoding or label encoding) for further analysis.
+from sklearn.preprocessing import LabelEncoder
+
+categorical_cols = ['property_type',
+'neighborhood',
+'crime_rate',
+'house_condition']
+
+enc = LabelEncoder()
+
+for col in categorical_cols:
+    merged_df[col] = enc.fit_transform(merged_df[col])
+merged_df.head()
+
+
+# 6. Aggregate the data to calculate summary statistics or derived metrics such as average sale prices by neighborhood or property type.
+aggregated_df = merged_df.groupby("neighborhood").agg({"sale_price": "mean"})
+aggregated_df
+
+
+# 7. Identify and handle outliers or extreme values in the data that may affect the analysis or modeling process.
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+cols = [
+'area_sq_ft',
+'sale_price',
+'distance_to_amenities_mi',
+'demographics_population',
+'property_taxes'
+]
+
+for col in cols:
+    sns.boxplot(merged_df[col])
+    plt.show()
+
+merged_df[(merged_df["sale_price"] > 3 * merged_df["sale_price"].std()) | (merged_df["sale_price"] < -3 * merged_df["sale_price"].std())]
